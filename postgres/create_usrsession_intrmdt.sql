@@ -1,4 +1,4 @@
-﻿drop table usrsession_intrmdt ;
+﻿drop table if exists usrsession_intrmdt ;
 create table usrsession_intrmdt as
 select userid, starttime, starttime::date startdate, 
        case when date_part('hour', starttime) between 6 and 12 then '1'
