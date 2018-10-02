@@ -1,0 +1,11 @@
+drop table if exists user_session_aggregated ;
+create table user_session_aggregated (userid varchar(50), 
+                                      session_start timestamp, 
+                                      timeofday varchar(9),
+                                      startdate date,
+                                      session_id integer, 
+                                      gender varchar(1), 
+                                      age integer, 
+                                      country varchar(255),
+                                      session_length integer
+                                      ) ;
