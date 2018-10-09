@@ -1,0 +1,47 @@
+---
+title: "Panel Data"
+author: "Jayashree Raman"
+date: "9/18/2018"
+output:
+  pdf_document: default
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(car)
+library(ggplot2)
+library(sqldf)
+library(plm)
+library(prediction)
+library(Metrics)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+usrSessData <- read.csv(file="usersessions-with-char-sec-train.csv", header=TRUE, row.names = NULL, sep="|")
+SessData<- na.omit(usrSessData)
+
+par(mfrow=c(1,2))
+# Fitted-vs-observed plot
+plot(log(SessData$session_length_mvavg), log(SessData$session_length), asp = 1, xlab = "Fitted", ylab = "Observed", main = "Fitted-vs-Observed")
+abline(0, 1, col = 'red', lty = 'dashed', lwd = 2)
+
+# Fitted-vs-Residuals plot
+plot(log(SessData$session_length_mvavg),log(SessData$session_length)-log(SessData$session_length_mvavg), asp = 1, xlab = "Fitted", ylab = "Residuals", main = "Fitted vs Residuals")
+abline(0, 0, col = 'red', lty = 'dashed', lwd = 2)
+
+## Mean absolute error
+mae_baseline <- mae(log(SessData$session_length_mvavg), log(SessData$session_length))
+rmse_baseline <- rmse(log(SessData$session_length_mvavg), log(SessData$session_length))
+
+cat('MAE - ', mae_baseline, ', RMSE ', rmse_baseline)
