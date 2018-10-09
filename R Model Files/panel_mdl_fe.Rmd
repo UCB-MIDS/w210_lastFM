@@ -1,0 +1,58 @@
+---
+title: "Panel Data"
+author: "Jayashree Raman"
+date: "9/18/2018"
+output:
+  pdf_document: default
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(plm)
+library(prediction)
+library(Metrics)
+library(tseries)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+
+train_data <- na.omit(read.csv(file="usersessions-with-char-sec-train.csv", header=TRUE, row.names = NULL, sep="|"))
+
+panel.data.train <- plm.data(train_data, index = c("session_start","userid"))
+
+mdl_fe <-plm(session_length~age+session_length_mvavg,  data = panel.data.train, model = "within")
+
+##Summaries
+
+summary(mdl_fe)
+
+#cat(length(panel.data.train$session_length), length(mdl_fd$residuals))
+# Fitted vs Observed and Fitted vs Residuals plots
+par(mfrow=c(1,2))
+plot(panel.data.train$session_length-mdl_fe$residuals, panel.data.train$session_length, asp=1, ylab = "Observed", xlab = "Fitted", main = "Fitted vs Observed ")
+abline(0,1, col='red', lty='dashed', lwd=2)
+
+## Fitted vs Residuals plots
+plot(panel.data.train$session_length-mdl_fe$residuals,mdl_fe$residuals, asp=1, ylab = "Observed", xlab = "Fitted", main = "Fitted vs Residuals")
+abline(0,0, col='red', lty='dashed', lwd=2)
+
+## MAE and RMSE
+
+mae_fe = mean(abs(mdl_fe$residuals))
+rmse_fe = sqrt(mean(abs(mdl_fe$residuals)^2))
+
+cat('MAE = ', mae_fe, ', RMSE = ', rmse_fe)
+```
+
+
