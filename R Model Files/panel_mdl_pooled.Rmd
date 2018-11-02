@@ -27,11 +27,11 @@ When you click the **Knit** button a document will be generated that includes bo
 
 ```{r}
 
-train_data <- na.omit(read.csv(file="usersessions-with-char-sec-train.csv", header=TRUE, row.names = NULL, sep="|"))
+train_data <- na.omit(read.csv(file="usersessions-with-genre-train.csv", header=TRUE, row.names = NULL, sep="|"))
 
-panel.data.train <- plm.data(train_data, index = c("session_start","userid"))
+panel.data.train <- plm.data(train_data, index = c("userid","session_start"))
 
-mdl_pooled <-plm(session_length~age+session_length_mvavg,  data = panel.data.train, model = "pooling")
+mdl_pooled <-plm(session_length~age+session_length_mvavg+previous_duration+is_holiday+absence_time,  data = panel.data.train, model = "pooling")
 
 ##Summaries
 
