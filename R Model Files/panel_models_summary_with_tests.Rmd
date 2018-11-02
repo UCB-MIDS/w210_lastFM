@@ -1,0 +1,85 @@
+---
+title: "Panel Data"
+author: "Jayashree Raman"
+date: "9/18/2018"
+output:
+  pdf_document: default
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(plm)
+library(prediction)
+library(Metrics)
+library(tseries)
+library(stargazer)
+library(stringr)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r, results='asis'}
+train_data <- na.omit(read.csv(file="C:/Users/jayashree.raman/Documents/Learning/MIDS/capstone/datasets/usersessions-with-genre-train.csv", header=TRUE, row.names = NULL, sep="|"))
+
+train_data$session_start <- as.POSIXct(train_data$session_start, "%Y-%m-%d %H:%M:%S")
+
+train_data$id <- as.numeric(str_replace_all(train_data$userid, "user_", ""))
+panel.data.train <- plm.data(train_data, index = c("id", "session_start"))
+
+mdl_pooled <-plm(session_length~age+session_length_mvavg+previous_duration+absence_time+is_holiday, data = panel.data.train, model = "pooling")
+
+mdl_random <-plm(session_length~age+session_length_mvavg+previous_duration+absence_time+is_holiday, data = panel.data.train, model = "random")
+
+mdl_fe <-plm(session_length~age+session_length_mvavg+previous_duration+absence_time+is_holiday, data = panel.data.train, model = "within")
+
+##Summaries
+stargazer(mdl_pooled, mdl_fe, mdl_random, 
+          column.labels = c("Pooled OLS", "Fixed Effects", "Random Effects"),
+          type='latex',
+          title="Comparing Pooled OLS, Fixed and Random Effects",
+          omit="as.factor",
+          covariate.labels = c("Age", "Session Length Moving Average"),
+          notes = c("Fixed effects estimated but not shown in Fixed Effects column"),
+          add.lines = list(c("Fixed Effects?", "No", "Yes")))
+
+
+```
+\newpage
+
+## Tests
+```{r, results='asis'}
+##Hausman test - To decide between the fixed and random effects model. Null hypothesis is that Random effects is a better fit
+
+phtest(mdl_fe, mdl_random)
+
+# Breusch-Pagan test - Testing between random effects regression and a fixed effect regression - Null is than random effects is better. 
+plmtest(mdl_fe, c("session_start"), effect = c("twoways"), type=("bp"))
+
+# Breusch-Pagan test - Testing between random effects regression and a simple OLS regression - Null is than random effects is better
+plmtest(mdl_pooled, effect = c("twoways"), type=("bp"))
+
+# Breusch--Godfrey Test For Panel Models - Test of serial correlation for (the idiosyncratic component of) the errors in panel models.
+pbgtest(mdl_fe)
+
+# F Test For Individual And/Or Time Effects- Test of individual and/or time effects based on the comparison of the within and the pooling model
+
+pFtest(mdl_fe, mdl_pooled)
+
+# The Dickey-Fuller test to check for stochastic trends. The null hypothesis is that the series has a unit root (i.e. non-stationary). If unit root is present you can take the first difference of the variable.
+
+adf.test(panel.data.train$session_length, k=3)
+
+#Panel Unit root tests
+purtest(session_length ~ trend, data=train_data, index=c('session_start', 'id'), pmax=8, exo = "trend", test = "hadri")
+```
+
+
