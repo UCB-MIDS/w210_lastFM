@@ -1,0 +1,134 @@
+---
+title: "Panel Data"
+author: "Jayashree Raman"
+date: "9/18/2018"
+output:
+  pdf_document: default
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(plm)
+library(prediction)
+library(Metrics)
+library(tseries)
+library(utils)
+library(stringr)
+library(prediction)
+library(sqldf)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+train_data <- na.omit(read.csv(file="usersessions-with-genre-train.csv", header=TRUE, row.names = NULL, sep="|"))
+
+test_data <- na.omit(read.csv(file="usersessions-with-genre-test.csv", header=TRUE, row.names = NULL, sep="|"))
+
+train_data$id <- as.numeric(str_replace_all(train_data$userid, "user_", ""))
+test_data$id <- as.numeric(str_replace_all(test_data$userid, "user_", ""))
+
+panel.data.train <- plm.data(train_data, index = c("id","session_start"))
+nrow(train_data)
+mdl_fe <-plm(session_length~age+session_length_mvavg+previous_duration+is_holiday+absence_time, data = panel.data.train, model = "within")
+
+##Summaries
+
+summary(mdl_fe)
+
+#cat(length(panel.data.train$session_length), length(mdl_fd$residuals))
+# Fitted vs Observed and Fitted vs Residuals plots
+# par(mfrow=c(1,2))
+# plot(mdl_fe$fitted.values, mdl_fe$model$session_length, asp=1, ylab = "Observed", xlab = "Fitted", main = "Fitted vs Observed ")
+# abline(0,1, col='red', lty='dashed', lwd=2)
+# 
+# ## Fitted vs Residuals plots
+# plot(mdl_fe$fitted.values,mdl_fe$residuals, asp=1, ylab = "Residuals", xlab = "Fitted", main = "Fitted vs Residuals")
+# abline(0,0, col='red', lty='dashed', lwd=2)
+# 
+# fitval <- prediction(mdl_fe, data = find_data(mdl_fe, parent.frame()), at=NULL, calculate_se=FALSE)
+
+
+# ## Fitted vs Fitted by hand plots
+intercept <- within_intercept(mdl_fe)
+fixefs <- as.numeric(fixef(mdl_fe)[index(mdl_fe, which = "id")])
+
+cat('Overall intercept ', intercept)
+# cat('Fixed effects ', fixefs)
+cat('Coeff - Age ', mdl_fe$coefficients["age"])
+cat('Coeff - Moving average ', mdl_fe$coefficients["session_length_mvavg"])
+cat('Coeff - Previous duration ', mdl_fe$coefficients["previous_duration"])
+
+temp <- merge(panel.data.train, data.frame(fixef_usr = names(fixef(mdl_fe)), fixef = as.numeric(fixef(mdl_fe))), by.x = c("id"), by.y=c("fixef_usr"))
+
+fit_hand <- temp$fixef + as.numeric(mdl_fe$coefficients[1])* panel.data.train$age +  as.numeric(mdl_fe$coefficients[2]) * panel.data.train$session_length_mvavg +
+ as.numeric(mdl_fe$coefficients[3]) * panel.data.train$previous_duration + 
+ as.numeric(mdl_fe$coefficients[4]) * panel.data.train$is_holiday +
+ as.numeric(mdl_fe$coefficients[5]) * panel.data.train$absence_time
+
+head(fit_hand)
+
+par(mfrow=c(1,3))
+plot(fit_hand, mdl_fe$residuals,asp=1, ylab = "Residuals", xlab = "Fitted", main = "Fitted by hand vs Residuals")
+abline(0,0, col='red', lty='dashed', lwd=2)
+
+# # ## Observed vs Fitted
+plot(panel.data.train$session_length-mdl_fe$residuals,panel.data.train$session_length, asp=1, xlab = "Fitted by hand", ylab = "Observed", main = "Fitted vs Observed")
+abline(0,1, col='red', lty='dashed', lwd=2)
+
+# # ## Fitted by hand vs Fitted plots
+plot(fit_hand,panel.data.train$session_length-mdl_fe$residuals, asp=1, xlab = "Fitted by hand", ylab = "Fitted", main = "Fitted by hand vs Fitted")
+abline(0,1, col='red', lty='dashed', lwd=2)
+# ## MAE and RMSE
+# 
+# mae_fe = mean(abs(mdl_fe$residuals))
+# rmse_fe = sqrt(mean(abs(mdl_fe$residuals)^2))
+# 
+mae_fe = mean(abs(panel.data.train$session_length-fit_hand))
+rmse_fe = sqrt(mean(abs(panel.data.train$session_length-fit_hand)^2))
+
+cat('MAE = ', mae_fe, ', RMSE = ', rmse_fe)
+
+## Out-of-Sample Predictions on test data
+#fxeff <- data.frame(fixef_usr= names(fixef(mdl_fe)), fixef = as.numeric(fixef(mdl_fe)[index(mdl_fe, which = "id")]))
+#temp <- merge(test_data, data.frame(fixef_usr= names(fixef(mdl_fe)), fixef = as.numeric(fixef(mdl_fe))), by.x = c("id"), by.y=c("fixef_usr"))
+
+panel.data.test <- plm.data(test_data, index = c("id", "session_start"))
+
+temp <- merge(panel.data.test, data.frame(fixef_usr = names(fixef(mdl_fe)), fixef = as.numeric(fixef(mdl_fe))), by.x = c("id"), by.y=c("fixef_usr"))
+
+predval <- temp$fixef + as.numeric(mdl_fe$coefficients[1])* panel.data.test$age +  as.numeric(mdl_fe$coefficients[2]) * panel.data.test$session_length_mvavg +
+ as.numeric(mdl_fe$coefficients[3]) * panel.data.test$previous_duration + 
+ as.numeric(mdl_fe$coefficients[4]) * panel.data.test$is_holiday +
+ as.numeric(mdl_fe$coefficients[5]) * panel.data.test$absence_time
+
+pred<-cbind(predval, panel.data.test$session_length)
+
+# # ## Observed vs Predicted plots
+plot(predval,panel.data.test$session_length, asp=1, xlab = "Predicted", ylab = "Observed", main = "Predicted vs Observed")
+abline(0,1, col='red', lty='dashed', lwd=2)
+
+# ## MAE and RMSE
+#
+mae_fe = mean(abs(mdl_fe$residuals))
+rmse_fe = sqrt(mean(abs(mdl_fe$residuals)^2))
+cat('Fitted - MAE = ', mae_fe, ', RMSE = ', rmse_fe)
+
+#
+mae_pred = mean(abs(panel.data.test$session_length-predval))
+rmse_pred = sqrt(mean(abs(panel.data.test$session_length-predval)^2))
+
+cat('Predicted - MAE = ', mae_pred, ', RMSE = ', rmse_pred)
+
+```
+
+
