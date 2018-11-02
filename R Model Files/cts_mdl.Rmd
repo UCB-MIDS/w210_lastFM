@@ -1,0 +1,108 @@
+---
+title: "Grouped Time Series-Session Length"
+author: "Jayashree Raman"
+date: "10/24/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+library(hts)
+library(lubridate)
+library(zoo)
+library(dplyr)
+library(stringr)
+library(tsbox)
+library(chron)
+library(mgcv)
+library(nlme)
+library(cts)
+time.series.plot <- function(dta, ts_title='Session Length for user') {
+if(length(dta)>0)
+  {
+   dta %>%
+     ts_trend() %>%
+     ts_plot(title = ts_title, ylab = 'Session length in seconds')}
+  }
+
+SessData <- read.csv(file="usersessions-with-genre-train.csv", header=TRUE, row.names = NULL, sep="|")
+
+SessData$session_dt <- as.Date(SessData$session_dt, format = "%Y-%m-%d" )
+SessData$session_start <- as.POSIXct(SessData$session_start, format = "%Y-%m-%d %H:%M:%S" )
+SessData$id <- as.numeric(str_replace_all(SessData$userid, "user_", ""))
+SessData$sess_time <- strftime(SessData$session_start, format="%H:%M:%S")
+SessData$session_length <- as.numeric(SessData$session_length)
+SessData$absence_time <- as.numeric(SessData$absence_time)
+#train_data <- subset(SessData, session_start > as.POSIXct('2009-03-01 00:00:00', format = "%Y-%m-%d %H:%M:%S" ) & session_start <= as.POSIXct('2009-03-03 00:00:00', format = "%Y-%m-%d %H:%M:%S" ))
+
+train_data<-na.omit(SessData)
+
+head(train_data)
+
+ts3 <- train_data[train_data$id == 3,] %>% 
+  select(time = session_start, session_length) %>% 
+  read.zoo()
+time.series.plot(ts3, 'Session Length for user_000003')
+nrow(train_data[train_data$id == 3,])
+
+ts9 <- train_data[train_data$id == 9,] %>% 
+  select(time = session_start, session_length) %>% 
+  read.zoo()
+time.series.plot(ts9, 'Session Length for user_000009')
+nrow(train_data[train_data$id == 9,])
+
+ts12 <- train_data[train_data$id == 12,] %>% 
+  select(time = session_start, session_length) %>% 
+  read.zoo()
+time.series.plot(ts12, 'Session Length for user_000012')
+nrow(train_data[train_data$id == 12,])
+
+ts217 <- train_data[train_data$id == 217,] %>% 
+  select(time = session_start, session_length) %>% 
+  read.zoo()
+time.series.plot(ts217, 'Session Length for user_000217')
+nrow(train_data[train_data$id == 217,])
+k <- 2*pi/mean(train_data[train_data$id==9,]$absence_time)
+
+cat('Scaling factor = ', k)
+fit <- car(train_data[train_data$id==9,]$session_start,train_data[train_data$id==9,]$session_length, scale=k,order=8, ctrl=car_control(trace=TRUE))
+summary(fit)
+spectrum(fit)
+tsdiag(fit)
+AIC(fit)
+factab(fit)
+
+# mdl_gamm <- gamm(session_length ~ s(session_dt, bs = "cr") + s(sess_time), data = train_data, correlation = corCAR1(form = ~ sess_time))
+# 
+# summary(mdl_gamm)
+
+# df <- SessData[order(SessData$country, SessData$id, SessData$timeid),]
+# df$test <- paste(df$country, df$id, seq=" ") # make the row to check
+# 
+# matrix(df$test, nrow=nrow(SessData))        # checking. If you succeed, each column consist of one factor.
+# sess_length <- zoo(matrix(df$session_length, nrow=nrow(SessData)), order.by=c(df$country, df$id, df$timeid))   # creating time-series objects
+# country <- levels( df$country )       # country
+# userid <- levels( df$id )  # Users
+# gc <- rbind(country, id)                 # a matrix consists of strings
+# rownames(gc) <- c("Country", "Userid")
+# x <- gts(sess_length, groups = gc)  
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r, echo=FALSE}
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
