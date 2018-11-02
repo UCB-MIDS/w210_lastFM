@@ -112,23 +112,18 @@ predval <- temp$fixef + as.numeric(mdl_fe$coefficients[1])* panel.data.test$age 
  as.numeric(mdl_fe$coefficients[5]) * panel.data.test$absence_time
 
 pred<-cbind(predval, panel.data.test$session_length)
-
 # # ## Observed vs Predicted plots
 plot(predval,panel.data.test$session_length, asp=1, xlab = "Predicted", ylab = "Observed", main = "Predicted vs Observed")
 abline(0,1, col='red', lty='dashed', lwd=2)
-
 # ## MAE and RMSE
 #
 mae_fe = mean(abs(mdl_fe$residuals))
 rmse_fe = sqrt(mean(abs(mdl_fe$residuals)^2))
 cat('Fitted - MAE = ', mae_fe, ', RMSE = ', rmse_fe)
-
 #
 mae_pred = mean(abs(panel.data.test$session_length-predval))
 rmse_pred = sqrt(mean(abs(panel.data.test$session_length-predval)^2))
-
 cat('Predicted - MAE = ', mae_pred, ', RMSE = ', rmse_pred)
-
 ```
 
 
