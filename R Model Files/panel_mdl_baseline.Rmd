@@ -28,17 +28,12 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
 ```{r}
-usrSessData <- read.csv(file="usersessions-with-char-sec-train.csv", header=TRUE, row.names = NULL, sep="|")
+usrSessData <- read.csv(file="C:/Users/jayashree.raman/Documents/Learning/MIDS/capstone/datasets/usersessions-with-genre.csv", header=TRUE, row.names = NULL, sep="|")
 SessData<- na.omit(usrSessData)
 
-par(mfrow=c(1,2))
 # Fitted-vs-observed plot
-plot(SessData$session_length_mvavg, SessData$session_length, asp = 1, xlab = "Fitted", ylab = "Observed", main = "Fitted-vs-Observed")
+plot(SessData$session_length_mvavg, SessData$session_length, asp = 1)
 abline(0, 1, col = 'red', lty = 'dashed', lwd = 2)
-
-# Fitted-vs-Residuals plot
-plot(SessData$session_length_mvavg, SessData$session_length-SessData$session_length_mvavg, asp = 1, xlab = "Fitted", ylab = "Residuals", main = "Fitted vs Residuals")
-abline(0, 0, col = 'red', lty = 'dashed', lwd = 2)
 
 ## Mean absolute error
 mae_baseline <- mae(SessData$session_length_mvavg, SessData$session_length)
