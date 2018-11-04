@@ -9,5 +9,9 @@ Files with log indicate that the model has the log transformation for the sessio
 
 ## Continuous time models
 cts_mdl - Continuous time model - This is still work in progress
+
+## Non Linear Mixed Effect models
+
+
   
 
