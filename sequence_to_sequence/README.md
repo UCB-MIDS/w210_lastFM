@@ -9,7 +9,7 @@
 
 Contains code for data exploration as well as pre-preprocessing
 
-- STEP 1: Execute "1. get_unique_tracks.ipynb" to get unique track information across all users
+- __STEP 1__ : Execute "1. get_unique_tracks.ipynb" to get unique track information across all users
 
 - STEP 2: Execute "2. get_track_metadata.ipynb" to get track duration and genres using the lastFM TrackInfo API
 
