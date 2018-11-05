@@ -16,43 +16,42 @@ Contains code for data exploration as well as pre-preprocessing
 - __STEP 3__ : Execute *"3. create_denormalized_users.ipynb"* to combine profile,track and session data to create a denormalized view for each user.
 
 	```
-	- Output files: final_dir/users/{user_id}/*.csv
+	- Output files: user_dir/{user_id}/*.csv
 
 	- Outout contains the following per user:
-		- user_id
-		- timestamp
-		- artist_name
-		- track_name
-		- gender
-		- age
-		- country
-		- registered
-		- duration
-		- genre
+		- user_id     : User ID
+		- timestamp   : Current timestamp in UTC
+		- artist_name : Name of the artist
+		- track_name  : Name of the track being listened to
+		- gender      : User gender (m,f,null)
+		- age         : Current age of the user (age is computed as age at registration + diff in years between registered date and timestamp)
+		- country     : Users country
+		- registered  : Data registered
+		- duration    : Track duration in seconds
+		- genre       : List of Genres associated to the track.
 	```
 
 ## Baseline model (*baseline/*)
 
 Code used to get the baseline sequence to sequence model performance 
 
-- __STEP 1__ : Create summarized session details per user. Execute *"0. create_util.ipynb"* and *"1. create_summarized_user_session.ipynb"*.
+- __STEP 1__ : Create summarized session details per user. Execute *"0. create_data_utility.ipynb", "0. create_model_utility.ipynb"* and *"1. create_summarized_user_session.ipynb"*.
 
 	```
 	    - Output files: summary_dir/{type}/{user_id}.csv
 	    	- type = train\test\validate
-	    	- user_id = ID per user
 
 		- Columns per user:
-			- timestamp
-			- user_id
-			- session_id
-			- gender
-			- age
-			- country
-			- registered
-			- previous_session_length
-			- average_session_length
-			- current_session_length
+			- timestamp               : Milliseconds since epoch
+			- user_id                 : Integer representation of user_id
+			- session_id              : Unique sequence per user session
+			- gender                  : 1 for male, 0 for female, -1 otherwise
+			- age                     : integer
+			- country                 : integer representation of country
+			- registered              : Milliseconds since epoch (or a number for UNK)
+			- previous_session_length : Length of previous session in seconds
+			- average_session_length  : Average session length of previous sessions for the user in seconds
+			- current_session_length  : Current session length in seconds
 	```
 
 - __STEP 2__ : To train and test, execute *"2. Train_and_test_model.ipynb"*. Use the following hyper parameters to test various models:
@@ -79,24 +78,23 @@ Code used to get the baseline sequence to sequence model performance
 	```
 	- Output files: final_dir/{type}/{user_id}.csv
 		- type = train\test\validate
-		- user_id = ID per user
 
 	- Columns per user:
-		- user_id
-		- current_timestamp
-		- start_timestamp			
-		- session_id
-		- previous_session_length
-		- average_session_length
-		- gender
-		- age
-		- country
-		- registered
-		- track_duration
-		- times_played
-		- artist_name
-		- track_name
-		- session_length
+		- user_id                 : Integer representation of user_id
+		- current_timestamp       : Milliseconds since epoch
+		- start_timestamp		  : start time of current session in milliseconds since epoch	
+		- session_id              : Unique sequence per user session
+		- previous_session_length : Length of previous session in seconds
+		- average_session_length  : Average session length of previous sessions for the user in seconds
+		- gender                  : 1 for male, 0 for female, -1 otherwise
+		- age                     : integer
+		- country                 : integer representation of country
+		- registered              : Milliseconds since epoch (or a number for UNK)
+		- track_duration          : Track length in seconds
+		- times_played            : Number of times track is played in one session
+		- artist_name             : Integer representation of artist name
+		- track_name              : Integer representation of track name
+		- session_length          : Current session length in seconds
 	```
 
 - __STEP 2__: Build a user profile for cluster analysis. Execute *"3. build_user_profiles.ipynb"* to generate user profiles:
@@ -104,15 +102,15 @@ Code used to get the baseline sequence to sequence model performance
 	```
 	- Output files: final_dir/user_profile_cluster.csv
 	- Columns:
-		- user_id
-		- gender
-		- age
-		- country
-		- registered
-		- top_artist
-		- top_track
-		- total_sessions
-		- average_session_length
+		- user_id                 : Integer representation of user_id
+		- gender                  : 1 for male, 0 for female, -1 otherwise
+		- age                     : integer
+		- country                 : integer representation of country
+		- registered              : Milliseconds since epoch (or a number for UNK)
+		- top_artist              : Artist with highest occurence count across sessions for user in training data
+		- top_track               : Track with highest occurence count across sessions for user in training data
+		- total_sessions          : Total number of sessions for user  in training data
+		- average_session_length  : Average session length for the user in seconds in training data
 	```
 
 - __STEP 3__: Cluster analysis. Run some cluster analysis to determine what kind  of clustering to use (*refer 4. cluster_analysis.ipynb*)
