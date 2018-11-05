@@ -35,8 +35,9 @@ Contains code for data exploration as well as pre-preprocessing
 
 Code used to get the baseline sequence to sequence model performance 
 
-- STEP 1: Create summarized session details per user. Execute "0. create_util.ipynb" and "1. create_summarized_user_session.ipynb"
+- __STEP 1__ : Create summarized session details per user. Execute *"0. create_util.ipynb"* and *"1. create_summarized_user_session.ipynb"*.
 
+	```
 	    - Output files: summary_dir/{type}/{user_id}.csv
 	    	- type = train\test\validate
 	    	- user_id = ID per user
@@ -52,12 +53,25 @@ Code used to get the baseline sequence to sequence model performance
 			- previous_session_length
 			- average_session_length
 			- current_session_length
+	```
 
-- STEP 2: To train and test, execute "2. Train_and_test_model.ipynb". Use the following hyper parameters to test various models:
-		a. GRU
-		b. LSTM
-		c. Layered LSTM
-		d. Add dropout to any of the above combinations.
+- __STEP 2__ : To train and test, execute *"2. Train_and_test_model.ipynb"*.
+
+	Use the following hyper parameters to test various models:
+
+		a. GRU          : Set "model_lstm" to __False__
+		b. LSTM         : Set "model_lstm" to __True__ and "layered" to __False__
+		c. Layered LSTM : Set "model_lstm" to __True__ and "layered" to __True__  and "no_layers" to __1__ (Note: Code supports only 2 layers,not more.So set value to 1)
+		d. Add dropout  : Set array of values to "dropout". 
+		e Additional hyperparameter:
+			- "train_file" - Path to training data
+			- "test_file" - Path to test data
+			- "validation_file" - Path to validation data
+			- "loss_func" - Loss function to be used in the Keras model
+			- "optimizer" - Optimizer to be used
+			- "hidden_dim" - Number of hidden dimensions in the network
+			- "Batch_size" - batch size for training
+			- "epochs" - Number of training epochs
 
 
 ## Baseline model with clusters
