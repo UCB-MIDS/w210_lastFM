@@ -5,16 +5,17 @@
 ![alt Overview of  data processing steps](data_pipeline.png)
 
 
-## Initial data_processing: 
+## Initial data processing (*data_processing/*): 
 
 Contains code for data exploration as well as pre-preprocessing
 
-- __STEP 1__ : Execute "1. get_unique_tracks.ipynb" to get unique track information across all users
+- __STEP 1__ : Execute *"1. get_unique_tracks.ipynb"* to get unique track information across all users
 
-- STEP 2: Execute "2. get_track_metadata.ipynb" to get track duration and genres using the lastFM TrackInfo API
+- __STEP 2__ : Execute *"2. get_track_metadata.ipynb"* to get track duration and genres using the lastFM TrackInfo API
 
-- STEP 3: Exxecute "3. create_denormalized_users.ipynb" to combine profile,track and session data to create a denormalized view for each user.
+- __STEP 3__ : Execute *"3. create_denormalized_users.ipynb"* to combine profile,track and session data to create a denormalized view for each user.
 
+	```
 	- Output files: final_dir/users/{user_id}/*.csv
 
 	- Outout contains the following per user:
@@ -28,9 +29,9 @@ Contains code for data exploration as well as pre-preprocessing
 		- registered
 		- duration
 		- genre
+	```
 
-
-## Baseline model
+## Baseline model (*baseline/*)
 
 Code used to get the baseline sequence to sequence model performance 
 
