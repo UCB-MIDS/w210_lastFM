@@ -5,7 +5,7 @@
 ![alt Overview of  data processing steps](data_pipeline.png)
 
 
-## Initial data processing (*data_processing/*): 
+## Initial data processing (*[data_processing/](https://github.com/UCB-MIDS/w210_lastFM/tree/master/sequence_to_sequence/data_processing)*): 
 
 Contains code for data exploration as well as pre-preprocessing
 
@@ -31,7 +31,7 @@ Contains code for data exploration as well as pre-preprocessing
 		- genre       : List of Genres associated to the track.
 	```
 
-## Baseline model (*baseline/*)
+## Baseline model (*[baseline/](https://github.com/UCB-MIDS/w210_lastFM/tree/master/sequence_to_sequence/baseline)*)
 
 Code used to get the baseline sequence to sequence model performance 
 
@@ -71,7 +71,7 @@ Code used to get the baseline sequence to sequence model performance
 		- "epochs"          : Number of training epochs
 
 
-## Baseline model with clusters
+## Baseline model with clusters (*[baseline_with_clusters/](https://github.com/UCB-MIDS/w210_lastFM/tree/master/sequence_to_sequence/baseline_with_clusters)*)
 
 - __STEP 1__: Build session data for analysis. Execute the following to build the data : *0. create_data_utility.ipynb, 1. build_complete_vocab.ipynb, 2. build_session_data.ipynb*
 
