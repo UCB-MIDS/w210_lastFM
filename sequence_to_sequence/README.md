@@ -133,9 +133,10 @@ __NOTE__: We see similar results (0.87) for GRU, Layered LSTMS with\without drop
 ### Results (In progress..)
 
 
-| Model     |  Clusters  | MAE     | Normalized MAE  |
-| --------- |-----------:| -------:|----------------:|
-| LSTM      | 5          | 3941.26 | 0.81            |
+| Model     |  Clusters  | MAE     | Normalized MAE  | comments                      |
+| --------- |-----------:| -------:|----------------:|------------------------------:|
+| LSTM      | 5          | 3941.26 | 0.81            | One cluster of ~600 users gave a score of 0.62.Further analysis in progress |
+
 
 
 
