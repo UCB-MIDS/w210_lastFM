@@ -74,10 +74,13 @@ Code used to get the baseline sequence to sequence model performance
 
 ## Baseline model with clusters
 
-- __STEP 1__: Build session data for analysis. Execute the following to build the data - 0. create_data_utility.ipynb, 1. build_complete_vocab.ipynb, 2. build_session_data.ipynb
+- __STEP 1__: Build session data for analysis. Execute the following to build the data : *0. create_data_utility.ipynb, 1. build_complete_vocab.ipynb, 2. build_session_data.ipynb*
+
+	```
 	- Output files: final_dir/{type}/{user_id}.csv
 		- type = train\test\validate
 		- user_id = ID per user
+
 	- Columns per user:
 		- user_id
 		- current_timestamp
@@ -94,9 +97,11 @@ Code used to get the baseline sequence to sequence model performance
 		- artist_name
 		- track_name
 		- session_length
+	```
 
-
-- STEP 2: Build a user profile for cluster analysis. Execute "3. build_user_profiles.ipynb" to generate user profiles:
+- __STEP 2__: Build a user profile for cluster analysis. Execute *"3. build_user_profiles.ipynb"* to generate user profiles:
+	
+	```
 	- Output files: final_dir/user_profile_cluster.csv
 	- Columns:
 		- user_id
@@ -108,11 +113,15 @@ Code used to get the baseline sequence to sequence model performance
 		- top_track
 		- total_sessions
 		- average_session_length
+	```
 
+- __STEP 3__: Cluster analysis. Run some cluster analysis to determine what kind  of clustering to use (*refer 4. cluster_analysis.ipynb*)
 
-- STEP 3: Cluster analysis. Run some cluster analysis to determine what kind  of clustering to use (refer 4. cluster_analysis.ipynb)
+- __STEP 4__: Train and test models with clustering (*Refer 5. create_model_utility.ipynb, 6. train_and_test_model.ipynb*).Use the following hyper parameters to test various models:
+	
+	- __clusters__     : Number of clusters to use
+	- refer [Baseline model Step 2](https://github.com/UCB-MIDS/w210_lastFM/tree/master/sequence_to_sequence#baseline-model-baseline) for additional details.
 
-- STEP 4: Train and test models with clustering (Refer 5. create_model_utility.ipynb, 6. train_and_test_model.ipynb)
 
 
 ## Dependencies
