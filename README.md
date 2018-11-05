@@ -14,7 +14,7 @@ We uset the last.fm 1K dataset and try to predict the user session length using 
  - [R Model Files](https://github.com/UCB-MIDS/w210_lastFM/tree/master/R%20Model%20Files)           : TBD
  - [classifier](https://github.com/UCB-MIDS/w210_lastFM/tree/master/classifier)                     : TBD
  - [pastgres](https://github.com/UCB-MIDS/w210_lastFM/tree/master/postgres)                         : TBD
- - [sequence_to_sequence](https://github.com/UCB-MIDS/w210_lastFM/tree/master/sequence_to_sequence) : This section contains analysis done using various sequence to sequence techniques in deep learning.
+ - [sequence_to_sequence](https://github.com/UCB-MIDS/w210_lastFM/tree/master/sequence_to_sequence) : This section contains analysis done using various sequence to sequence deep learning techniques.
 
 
 
