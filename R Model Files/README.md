@@ -7,6 +7,9 @@ where
 data transformation = "pooling", "between", "within", "random", "fd"
 Files with log indicate that the model has the log transformation for the session length
 
+## Dynamic Linear models
+In Progress
+
 ## Continuous time models
 cts_mdl - Continuous time model - This is still work in progress
 
