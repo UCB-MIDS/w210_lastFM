@@ -55,65 +55,59 @@ Code used to get the baseline sequence to sequence model performance
 			- current_session_length
 	```
 
-- __STEP 2__ : To train and test, execute *"2. Train_and_test_model.ipynb"*.
+- __STEP 2__ : To train and test, execute *"2. Train_and_test_model.ipynb"*. Use the following hyper parameters to test various models:
 
-	Use the following hyper parameters to test various models:
-
-		a. GRU          : Set "model_lstm" to __False__
-		b. LSTM         : Set "model_lstm" to __True__ and "layered" to __False__
-		c. Layered LSTM : Set "model_lstm" to __True__ and "layered" to __True__  and "no_layers" to __1__ (Note: Code supports only 2 layers,not more.So set value to 1)
-		d. Add dropout  : Set array of values to "dropout". 
-		e Additional hyperparameter:
-			- "train_file" - Path to training data
-			- "test_file" - Path to test data
-			- "validation_file" - Path to validation data
-			- "loss_func" - Loss function to be used in the Keras model
-			- "optimizer" - Optimizer to be used
-			- "hidden_dim" - Number of hidden dimensions in the network
-			- "Batch_size" - batch size for training
-			- "epochs" - Number of training epochs
+	- __GRU__          : Set "model_lstm" to __False__
+	- __LSTM__         : Set "model_lstm" to __True__ and "layered" to __False__
+	- __Layered LSTM__ : Set "model_lstm" to __True__ and "layered" to __True__  and "no_layers" to __1__ (Note: Code supports only 2 layers,not more.So set value to 1)
+	- __Add dropout__  : Set array of values to "dropout". 
+	- *Additional hyperparameter*:
+		- "train_file"      : Path to training data
+		- "test_file"       : Path to test data
+		- "validation_file" : Path to validation data
+		- "loss_func"       : Loss function to be used in the Keras model
+		- "optimizer"       : Optimizer to be used
+		- "hidden_dim"      : Number of hidden dimensions in the network
+		- "Batch_size"      : batch size for training
+		- "epochs"          : Number of training epochs
 
 
 ## Baseline model with clusters
 
-- STEP 1: Build session data for analysis. Execute the following to build the data - 0. create_data_utility.ipynb, 1. build_complete_vocab.ipynb, 2. build_session_data.ipynb
-
-	    - Output files: final_dir/{type}/{user_id}.csv
-	    	- type = train\test\validate
-	    	- user_id = ID per user
-
-		- Columns per user:
-			- user_id
-			- current_timestamp
-			- start_timestamp			
-			- session_id
-			- previous_session_length
-			- average_session_length
-			- gender
-			- age
-			- country
-			- registered
-			- track_duration
-			- times_played
-			- artist_name
-			- track_name
-			- session_length
+- __STEP 1__: Build session data for analysis. Execute the following to build the data - 0. create_data_utility.ipynb, 1. build_complete_vocab.ipynb, 2. build_session_data.ipynb
+	- Output files: final_dir/{type}/{user_id}.csv
+		- type = train\test\validate
+		- user_id = ID per user
+	- Columns per user:
+		- user_id
+		- current_timestamp
+		- start_timestamp			
+		- session_id
+		- previous_session_length
+		- average_session_length
+		- gender
+		- age
+		- country
+		- registered
+		- track_duration
+		- times_played
+		- artist_name
+		- track_name
+		- session_length
 
 
 - STEP 2: Build a user profile for cluster analysis. Execute "3. build_user_profiles.ipynb" to generate user profiles:
-
-	    - Output files: final_dir/user_profile_cluster.csv
-
-		- Columns:
-			- user_id
-			- gender
-			- age
-			- country
-			- registered
-			- top_artist
-			- top_track
-			- total_sessions
-			- average_session_length
+	- Output files: final_dir/user_profile_cluster.csv
+	- Columns:
+		- user_id
+		- gender
+		- age
+		- country
+		- registered
+		- top_artist
+		- top_track
+		- total_sessions
+		- average_session_length
 
 
 - STEP 3: Cluster analysis. Run some cluster analysis to determine what kind  of clustering to use (refer 4. cluster_analysis.ipynb)
