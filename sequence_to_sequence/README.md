@@ -129,14 +129,14 @@ __NOTE__: We see similar results (0.87) for GRU, Layered LSTMS with\without drop
 
 	- Use ```util.plot_cluster_elbow()``` to determine the best number of clusters to use. Refer [Elbow Method](https://en.wikipedia.org/wiki/Elbow_method_(clustering)) for more details. 
 	- Use ```util.plot_clusters()``` to visualize clusters based on 2 dimensions.
-	- Use ```util.silhouette_analysis()`` to visualize a silhouette plot and analyze clusters based on the plot. Refer [Silhouette Method](https://en.wikipedia.org/wiki/Silhouette_(clustering)) for more details.
+	- Use ```util.silhouette_analysis()``` to visualize a silhouette plot and analyze clusters based on the plot. Refer [Silhouette Method](https://en.wikipedia.org/wiki/Silhouette_(clustering)) for more details.
 	- Use ```util.get_baseline_mae()``` to get the baseline scores either in a standardized or raw form. 
 
 - __STEP 4__: Train and test models with clustering (*Refer 5. create_model_utility.ipynb, 6. train_and_test_model.ipynb*).Use the following hyper parameters to test various models:
 	
 	- __clusters__             : Number of clusters to use
 	- __Spectral Clustering__  : To use spectral clustering set "use_spectral_clustering" to __True__
-	- __Spectral Clustering__  : To use KMeans, set "use_spectral_clustering" to __False__
+	- __KMeans Clustering__    : To use KMeans, set "use_spectral_clustering" to __False__
 	- __cluster dimensions__   : Use "cluster_columns" to specify the column numbers (as a tuple) to be used to determine the clusters.
 	- __Standardize data__     : To standardize the data, set "standardize" to __True__, else set it to __False__
 	- __mixed standardization__: Setting "mix_std" to __True__ will standardize data if there are less than 200 users in a cluster, otherwise non standardized data will be used.
@@ -145,10 +145,21 @@ __NOTE__: We see similar results (0.87) for GRU, Layered LSTMS with\without drop
 
 ### Results (In progress..)
 
+All the below analysis has been done using an LSTM Model
 
-| Model      |  Clusters   | MAE     | Normalized MAE   | comments                       |
-| :----------|:-----------:|:-------:|:----------------:|:------------------------------:|
-| LSTM       | 5           | 3941.26 | 0.81             | One cluster of ~600 users gave a score of 0.62.Further analysis in progress |
+| Method     |  Clusters   |  Normalized MAE  | Standardization    | Dimensions clustered on |
+|:-----------|:-----------:|:----------------:|:------------------:|:------------------------|
+| KMeans     | 5           | 0.794            | False              | Average session length  |
+|------------|-------------|------------------|--------------------|-------------------------|
+| KMeans     | 5           | 0.81             | True               | Average session length  |
+|------------|-------------|------------------|--------------------|-------------------------|
+| KMeans     | 5           | 0.65             | Mixed              | Average session length  |
+|------------|-------------|------------------|--------------------|-------------------------|
+| Spectral   | 5           | 0.785            | False              | Average session length  |
+|------------|-------------|------------------|--------------------|-------------------------|
+| Spectral   | 5           | 0.87             | True               | Average session length  |
+|------------|-------------|------------------|--------------------|-------------------------|
+| Spectral   | 5           | 0.63             | Mixed              | Average session length  |
 
 
 
