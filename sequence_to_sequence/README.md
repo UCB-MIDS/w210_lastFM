@@ -120,14 +120,27 @@ __NOTE__: We see similar results (0.87) for GRU, Layered LSTMS with\without drop
 		- top_track               : Track with highest occurence count across sessions for user in training data
 		- total_sessions          : Total number of sessions for user  in training data
 		- average_session_length  : Average session length for the user in seconds in training data
+		- max_session_length      : Max session length for the user in seconds in training data
+		- median_session_length   : Median session length for the user in seconds in training data
+		- total_session_rows      : Total number of session records present in training data for the user
 	```
 
-- __STEP 3__: Cluster analysis. Run some cluster analysis to determine what kind  of clustering to use (*refer 4. cluster_analysis.ipynb*)
+- __STEP 3__: Cluster analysis. Run some cluster analysis to determine what kind  of clustering to use (*refer 4. cluster_analysis.ipynb and 5. create_model_utility.ipynb*)
+
+	- Use ```util.plot_cluster_elbow()``` to determine the best number of clusters to use. Refer [Elbow Method](https://en.wikipedia.org/wiki/Elbow_method_(clustering)) for more details. 
+	- Use ```util.plot_clusters()``` to visualize clusters based on 2 dimensions.
+	- Use ```util.silhouette_analysis()`` to visualize a silhouette plot and analyze clusters based on the plot. Refer [Silhouette Method](https://en.wikipedia.org/wiki/Silhouette_(clustering)) for more details.
+	- Use ```util.get_baseline_mae()``` to get the baseline scores either in a standardized or raw form. 
 
 - __STEP 4__: Train and test models with clustering (*Refer 5. create_model_utility.ipynb, 6. train_and_test_model.ipynb*).Use the following hyper parameters to test various models:
 	
-	- __clusters__     : Number of clusters to use
-	- refer [Baseline model Step 2](https://github.com/UCB-MIDS/w210_lastFM/tree/master/sequence_to_sequence#baseline-model-baseline) for additional details.
+	- __clusters__             : Number of clusters to use
+	- __Spectral Clustering__  : To use spectral clustering set "use_spectral_clustering" to __True__
+	- __Spectral Clustering__  : To use KMeans, set "use_spectral_clustering" to __False__
+	- __cluster dimensions__   : Use "cluster_columns" to specify the column numbers (as a tuple) to be used to determine the clusters.
+	- __Standardize data__     : To standardize the data, set "standardize" to __True__, else set it to __False__
+	- __mixed standardization__: Setting "mix_std" to __True__ will standardize data if there are less than 200 users in a cluster, otherwise non standardized data will be used.
+	- refer [Baseline model Step 2](https://github.com/UCB-MIDS/w210_lastFM/tree/master/sequence_to_sequence#baseline-model-baseline) for details on other hyperparameters.s
 
 
 ### Results (In progress..)
