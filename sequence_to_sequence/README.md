@@ -82,6 +82,16 @@ __NOTE__: We see similar results (0.87) for GRU, Layered LSTMS with\without drop
 
 ## Sequence model with clusters (*[models_with_clusters/](https://github.com/UCB-MIDS/w210_lastFM/tree/master/sequence_to_sequence/models_with_clusters)*)
 
+
+### Overview
+
+
+![alt Cluster Pipeline](img/cluster_process.png)
+
+
+### Steps 
+
+
 - __STEP 1__: Build session data for analysis. Execute the following to build the data : *0. create_data_utility.ipynb, 1. build_complete_vocab.ipynb, 2. build_session_data.ipynb*
 
 	```
