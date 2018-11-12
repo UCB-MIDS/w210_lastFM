@@ -150,15 +150,10 @@ All the below analysis has been done using an LSTM Model
 | Method     |  Clusters   |  Normalized MAE  | Standardization    | Dimensions clustered on |
 |:-----------|:-----------:|:----------------:|:------------------:|:------------------------|
 | KMeans     | 5           | 0.794            | False              | Average session length  |
-|------------|-------------|------------------|--------------------|-------------------------|
 | KMeans     | 5           | 0.81             | True               | Average session length  |
-|------------|-------------|------------------|--------------------|-------------------------|
 | KMeans     | 5           | 0.65             | Mixed              | Average session length  |
-|------------|-------------|------------------|--------------------|-------------------------|
 | Spectral   | 5           | 0.785            | False              | Average session length  |
-|------------|-------------|------------------|--------------------|-------------------------|
 | Spectral   | 5           | 0.87             | True               | Average session length  |
-|------------|-------------|------------------|--------------------|-------------------------|
 | Spectral   | 5           | 0.63             | Mixed              | Average session length  |
 
 
