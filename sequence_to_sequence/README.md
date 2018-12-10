@@ -164,7 +164,7 @@ __NOTE__: We see similar results (0.87) for GRU, Layered LSTMS with\without drop
 Below is a  depiction of the results obtained over the  timeline of  this project
 
 
-![alt Data Pipeline](img/results_timeline.png.png)
+![alt Results](img/results_timeline.png)
 
 
 As seen above, a simple LSTM model with spectral clustering and mixed standardization seems to perform the best for the  data at hand.
