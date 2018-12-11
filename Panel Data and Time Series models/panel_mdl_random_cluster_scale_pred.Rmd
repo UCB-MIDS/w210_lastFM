@@ -1,0 +1,166 @@
+---
+title: "Panel Data - Random Effects"
+author: "Jayashree Raman"
+date: "12/11/2018"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(plm)
+library(prediction)
+library(sqldf)
+library(stringr)
+library(ggplot2)
+library(dplyr)
+library(gridExtra)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+## Cluster the users by average session_length and absence_time
+```{r}
+cluster_kmeans <- function(sessdf){
+
+  sessdf %>% mutate_if(is.numeric, scale)
+  clustdat <- sessdf[,2:4]
+  k5 <- kmeans(clustdat, centers = 5, nstart = 25)
+  clustdat <- cbind(sessdf, cluster = k5$cluster)
+  return(clustdat)
+}
+```
+
+
+## Include cluster number in dataset
+```{r}
+SessData <- na.omit(read.csv(file="usersessions-avgbase.csv", header=TRUE, row.names = NULL, sep="|")[,c("userid", "session_start","session_dt","session_length","absence_time","previous_duration","previous_absence_time","session_length_mvavg","session_length_mvavg_30","session_length_mvavg_time","sessionid", "avg_base")])
+SessData$session_dt <- as.Date(SessData$session_dt,format= "%Y-%m-%d")
+SessData$id <- as.numeric(str_replace_all(SessData$userid, 'user_', ''))
+SessData$previous_duration_scale <- scale(SessData$previous_duration)
+SessData$absence_time_scale <- scale(SessData$absence_time)
+SessData$session_mvavg_scale <- scale(SessData$session_length_mvavg)
+
+SessData$previous_duration_log <- log(SessData$previous_duration)
+SessData$absence_time_log <- log(SessData$absence_time)
+SessData$session_mvavg_log <- log(SessData$session_length_mvavg)
+SessData$avg_base_log <- log(SessData$avg_base)
+SessData$session_length_log <- log(SessData$session_length)
+
+user_cluster <- cluster_kmeans(sqldf("select userid, avg(session_length) sess_length_avg, avg(absence_time) absence_time_avg, max(sessionid) sess_count from SessData group by userid"))
+head(user_cluster)
+
+user_cluster$id <- as.numeric(str_replace_all(user_cluster$userid, 'user_', ''))
+
+session_cluster <- sqldf("select a.*, b.cluster from SessData a, user_cluster b where a.userid = b.userid and previous_duration is not null and absence_time is not null")
+
+head(session_cluster)
+cluster_count <- sqldf("select cluster, count(distinct userid) no_users from session_cluster group by cluster")
+nrow(session_cluster)
+rm(SessData)
+
+results<-setNames(data.frame(matrix(ncol = 5, nrow = 0)), c("model","cluster", "session_length", "session_length_scale","fitted"))
+mae_results<-setNames(data.frame(matrix(ncol = 16, nrow = 0)), c("cluster", "no_users","base", "base_log", "mae", "rmse", "mae_scale", "rmse_scale", "mae_log", "rmse_log","norm_mae","norm_mae_tot","norm_mae_scale", "norm_mae_scale_tot", "norm_mae_log", "norm_mae_log_tot"))
+results <- data.frame()
+results_scale <- data.frame()
+```
+
+
+```{r}
+for (i in 0:nrow(cluster_count))
+{
+if( i > 0 ){
+     df_train <- subset(session_cluster, cluster == i & session_dt < "2009-04-01")
+     df_test <- subset(session_cluster, cluster == i & session_dt >= "2009-04-01")
+     no_users <- as.numeric(cluster_count[i, "no_users"])
+     mae_baseline <-  mean(abs(df_test[df_test$cluster==i,]$session_length-df_test[df_test$cluster==i,]$avg_base))
+     mae_baseline_log <-  mean(abs(df_test[df_test$cluster==i,]$session_length_log-df_test[df_test$cluster==i,]$avg_base_log))
+  }
+  else
+  {
+    df_train <- subset(session_cluster, session_dt < "2009-04-01")
+    df_test <- subset(session_cluster, session_dt >= "2009-04-01")
+    no_users <- nrow(user_cluster)
+    mae_baseline <-  mean(abs(df_test$session_length-df_test$avg_base))
+    mae_baseline_log <-  mean(abs(df_test$session_length_log-df_test$avg_base_log))
+    }
+
+  mae_pred <- 'NA'
+  rmse_pred <- 'NA'
+
+  if(nrow(df_train)>0 & nrow(df_test)>0 & no_users>1)
+    {
+    mdl_random <-plm(session_length~ previous_duration+absence_time+session_length_mvavg+session_length_mvavg_time,  data = df_train, model = "random")
+    mdl_random_scale <-plm(session_length~ previous_duration_scale + absence_time_scale+session_mvavg_scale,  data = df_train, model = "random")
+    mdl_random_log <-plm(session_length_log~previous_duration_log + absence_time_log+session_mvavg_log,  data = df_train, model = "random")
+   predval <- prediction(mdl_random, data=df_test)
+   results <- rbind(results, predval)
+   predval_scale <- prediction(mdl_random_scale, data=df_test)
+   predval_log <- prediction(mdl_random_log, data=df_test)
+ if(i >0)
+    {
+      results_scale <- rbind(results_scale, predval_scale)
+      results <- rbind(results, predval)
+   }
+
+   mae_pred <- mean(abs(predval$session_length-predval$fitted))
+   rmse_pred<-sqrt(mean(abs(predval$session_length-predval$fitted)^2))
+   mae_pred_scale<-mean(abs(predval_scale$session_length-predval_scale$fitted))
+   rmse_pred_scale<-sqrt(mean(abs(predval_scale$session_length-predval_scale$fitted)^2))
+   mae_pred_log<-mean(abs(predval_log$session_length_log-predval_log$fitted))
+   rmse_pred_log<-sqrt(mean(abs(predval_log$session_length_log-predval_log$fitted)^2))
+  }
+
+ if(is.numeric(mae_pred)){
+mae_results[nrow(mae_results)+1,]<-c(i, no_users, mae_baseline, mae_baseline_log,  mae_pred, rmse_pred, mae_pred_scale, rmse_pred_scale,mae_pred_log, rmse_pred_log, mae_pred/mae_baseline, (mae_pred/mae_baseline)*no_users,  mae_pred_scale/mae_baseline, (mae_pred_scale/mae_baseline)*no_users,
+mae_pred_log/mae_baseline_log, (mae_pred_log/mae_baseline_log)*no_users                                    )
+  }
+  else
+  {
+    mae_results[nrow(mae_results)+1,]<-c(i, no_users,mae_baseline, mae_baseline_log, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0)
+  }
+
+rm(df_train)
+rm(df_test)
+}
+
+results$residuals <- results$session_length - results$fitted
+results_scale$residuals <- results_scale$session_length - results_scale$fitted
+
+sqldf("select cluster id, no_users users, round(base, 4) base, round(base_log, 4) base_log, round(mae, 4) mae, round(mae_scale, 4) mae_scale,round(mae_log, 4) mae_log, round(norm_mae, 4) nrm_mae, round(norm_mae_scale, 4) nrm_mae_scl, round(norm_mae_log, 4) nrm_mae_log, round(norm_mae_tot, 4) nrm_tot, round(norm_mae_scale_tot, 4) nrm_scale_tot,
+round(norm_mae_log_tot, 4) nrm_log_tot from mae_results")
+
+mae_full <- mae_results[mae_results$cluster == 0,]$norm_mae_tot/mae_results[mae_results$cluster == 0,]$no_users
+mae_scale_full <- mae_results[mae_results$cluster == 0,]$norm_mae_scale_tot/mae_results[mae_results$cluster == 0,]$no_users
+mae_log_full <- mae_results[mae_results$cluster == 0,]$norm_mae_log_tot/mae_results[mae_results$cluster == 0,]$no_users
+
+mae_cluster <- sum(mae_results[mae_results$cluster > 0,]$norm_mae_tot, na.rm = TRUE)/sum(mae_results[mae_results$cluster > 0,]$no_users)
+mae_cluster_scale <- sum(mae_results[mae_results$cluster > 0,]$norm_mae_scale_tot, na.rm =TRUE)/sum(mae_results[mae_results$cluster > 0,]$no_users)
+mae_cluster_log <- sum(mae_results[mae_results$cluster > 0,]$norm_mae_log_tot, na.rm =TRUE)/sum(mae_results[mae_results$cluster > 0,]$no_users)
+
+cat('Full MAE ', mae_full, ' Scaled MAE ', mae_scale_full, ' Log MAE ', mae_log_full)
+cat(' Clustered MAE ', mae_cluster,' Clustered Scaled MAE ', mae_cluster_scale, ' Clustered Log MAE ', mae_cluster_log)
+``` 
+
+## Plot clusters
+```{r}
+head(results)
+head(results_scale)
+
+residplot <- ggplot(results) + geom_point(aes(x = fitted, y = residuals, colour = factor(cluster)))
+
+residplot_scale <- ggplot(results_scale) + geom_point(aes(x = fitted, y = residuals, colour = factor(cluster)))
+grid.arrange(residplot, residplot_scale, ncol=2)
+```
+
+
+
