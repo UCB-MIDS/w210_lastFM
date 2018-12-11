@@ -1,0 +1,75 @@
+---
+title: "Continuous Time Series-Session Length"
+author: "Jayashree Raman"
+date: "10/24/2018"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+library(stringr)
+library(cts)
+
+SessData <- read.csv(file="C:/Users/jayashree.raman/Documents/Learning/MIDS/capstone/Final code/Models/usersessions.csv", header=TRUE, row.names = NULL, sep="|")
+SessData$session_dt <- as.Date(SessData$session_dt) 
+SessData$session_tme <- as.numeric(SessData$session_start)
+SessData$id <- as.numeric(str_replace_all(SessData$userid, "user_", ""))
+SessData$session_length_log <- log(SessData$session_length)
+train_data <- subset(SessData, id == 861 & session_dt < "2005-09-25")[, c("session_tme", "session_length_log")]
+test_data <- subset(SessData, id == 861 & session_dt >= "2005-09-26" & session_dt < "2006-01-01")[, c("session_tme", "session_length_log")]
+
+head(train_data)
+head(test_data)
+
+plot(train_data, type = "l", xlab = "Time in seconds", ylab = "Log of session_length")
+rug(train_data[, 1], col = "red")
+
+
+train_data.car5 <- car(train_data, scale = 0.0001, order = 5)
+
+tab1 <- cbind(train_data.car5$tnit, train_data.car5$ss, train_data.car5$bit[,
++ 5])
+colnames(tab1) <- c("Iteration", "Sum of Squares", "phi_5")
+
+print(as.data.frame(round(tab1, 5)), row.names = FALSE, print.gap = 3)
+
+#AIC(train_data.car4)
+summary(train_data.car5)
+spectrum(train_data.car5)
+plot(train_data.car5, type="pred")
+plot(test_data, type = "l")
+
+norder <- 14
+train_data.aic <- train_data.bic <- rep(NA, norder)
+for (i in 1:norder) {
+ fit <- car(train_data, scale = 0.0001, order = i)
+ train_data.aic[i] <- fit$aic
+ train_data.bic[i] <- fit$bic
+}
+res <- data.frame(order = 1:norder, AIC = train_data.aic, BIC = train_data.bic)
+print(res, row.names = FALSE, print.gap = 8)
+
+# tsdiag(train_data.car5)
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r, echo=FALSE}
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
