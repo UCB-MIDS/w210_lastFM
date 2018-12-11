@@ -1,0 +1,152 @@
+---
+title: "Panel Data - Linear Mixed Effects Model"
+author: "Jayashree Raman"
+date: "9/18/2018"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(lme4)
+library(prediction)
+library(sqldf)
+library(stringr)
+library(ggplot2)
+library(dplyr)
+library(gridExtra)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+## Cluster the users by average session_length and absence_time
+```{r}
+cluster_kmeans <- function(sessdf){
+
+  sessdf %>% mutate_if(is.numeric, scale)
+  clustdat <- sessdf[,2:4]
+  k5 <- kmeans(clustdat, centers = 5, nstart = 25)
+  clustdat <- cbind(sessdf, cluster = k5$cluster)
+  return(clustdat)
+}
+```
+
+
+## Load data, clustering and scaling of variables
+```{r}
+SessData <- na.omit(read.csv(file="usersessions-avgbase.csv", header=TRUE, row.names = NULL, sep="|")[,c("userid", "session_start","session_dt","session_length","absence_time","previous_duration","previous_absence_time","session_length_mvavg","session_length_mvavg_30","session_length_mvavg_time","sessionid", "avg_base")])
+SessData$session_dt <- as.Date(SessData$session_dt,format= "%Y-%m-%d")
+SessData$session_num_scale <- scale(as.numeric(SessData$session_start))
+SessData$id <- as.numeric(str_replace_all(SessData$userid, 'user_', ''))
+SessData$previous_duration_scale <- scale(SessData$previous_duration)
+SessData$absence_time_scale <- scale(SessData$absence_time)
+SessData$session_mvavg_scale <- scale(SessData$session_length_mvavg)
+
+user_cluster <- cluster_kmeans(sqldf("select userid, avg(session_length) sess_length_avg, avg(absence_time) absence_time_avg, max(sessionid) sess_count from SessData group by userid"))
+
+user_cluster$id <- as.numeric(str_replace_all(user_cluster$userid, 'user_', ''))
+
+session_cluster <- sqldf("select a.*, b.cluster from SessData a, user_cluster b where a.userid = b.userid and previous_duration is not null and absence_time is not null")
+
+cluster_count <- sqldf("select cluster, count(distinct userid) no_users from session_cluster group by cluster")
+
+rm(SessData)
+
+results<-setNames(data.frame(matrix(ncol = 5, nrow = 0)), c("model","cluster", "session_length", "session_length_scale","fitted"))
+mae_results<-setNames(data.frame(matrix(ncol = 11, nrow = 0)), c("cluster", "no_users","base", "mae", "rmse", "norm_mae","norm_mae_tot","mae_null", "rmse_null", "norm_mae_null","norm_mae_tot_null"))
+results <- data.frame()
+results_scale <- data.frame()
+```
+
+
+## Looping for clustering - 0 cluster is for the full data
+```{r}
+for (i in 0:nrow(cluster_count))
+{
+if( i > 0 ){
+     df_train <- subset(session_cluster, cluster == i & session_dt < "2009-04-01")
+     df_test <- subset(session_cluster, cluster == i & session_dt >= "2009-04-01")
+     no_users <- as.numeric(cluster_count[i, "no_users"])
+     mae_baseline <-  mean(abs(df_test[df_test$cluster==i,]$session_length-df_test[df_test$cluster==i,]$avg_base))
+  }
+  else
+  {
+    df_train <- subset(session_cluster, session_dt < "2009-04-01")
+    df_test <- subset(session_cluster, session_dt >= "2009-04-01")
+    no_users <- nrow(user_cluster)
+    mae_baseline <-  mean(abs(df_test$session_length-df_test$avg_base))
+    }
+
+  mae_pred <- 'NA'
+  rmse_pred <- 'NA'
+
+  if(nrow(df_train)>0 & nrow(df_test)>0 & no_users>1)
+    {
+     mdl_lmer_null <- lmer(session_length ~ 1 + (1|userid), data=df_train)
+     mdl_lmer <-lmer(session_length~session_mvavg_scale+previous_duration_scale+absence_time_scale+session_num_scale+(session_num_scale|userid)+(1|userid),  data = df_train)
+     # mdl_lmer_log <-lmer(log(session_length)~log(session_length_mvavg)+log(absence_time)+(1|userid),  data = df_train)
+
+     predval <- prediction(mdl_lmer, data=df_test)
+     predval_null <- prediction(mdl_lmer_null, data=df_test)
+     # predval_log <- prediction(mdl_lmer_log, data=df_test)
+     
+   if(i >0)
+    {
+      results <- rbind(results, predval)
+    }
+
+   mae_pred <- mean(abs(predval$session_length-predval$fitted))
+   rmse_pred<-sqrt(mean(abs(predval$session_length-predval$fitted)^2))
+   
+   mae_pred_null <- mean(abs(predval_null$session_length-predval_null$fitted))
+   rmse_pred_null <-sqrt(mean(abs(predval_null$session_length-predval_null$fitted)^2))
+   
+  }
+
+ if(is.numeric(mae_pred)){
+    mae_results[nrow(mae_results)+1,]<-c(i, no_users, mae_baseline,  mae_pred, rmse_pred, mae_pred/mae_baseline, (mae_pred/mae_baseline)*no_users,  mae_pred_null, rmse_pred_null, mae_pred_null/mae_baseline, (mae_pred_null/mae_baseline)*no_users)
+  }
+  else
+  {
+    mae_results[nrow(mae_results)+1,]<-c(i, no_users,mae_baseline, 0,  0, 0, 0, 0,0, 0, 0)
+  }
+
+rm(df_train)
+rm(df_test)
+}
+
+results$residuals <- results$session_length - results$fitted
+
+sqldf("select cluster id, no_users users, round(base, 4) base,round(mae_null, 4) mae_null, round(norm_mae_null, 4) nrm_mae_null, round(norm_mae_tot_null, 4) nrm_tot, round(mae, 4) mae, round(norm_mae, 4) nrm_mae, round(norm_mae_tot, 4) nrm_tot from mae_results")
+
+mae_full <- mae_results[mae_results$cluster == 0,]$norm_mae_tot/mae_results[mae_results$cluster == 0,]$no_users
+
+mae_cluster <- sum(mae_results[mae_results$cluster > 0,]$norm_mae_tot, na.rm = TRUE)/sum(mae_results[mae_results$cluster > 0,]$no_users)
+
+mae_cluster_null <- sum(mae_results[mae_results$cluster > 0,]$norm_mae_tot_null, na.rm = TRUE)/sum(mae_results[mae_results$cluster > 0,]$no_users)
+
+
+cat('Full MAE ', mae_full)
+cat(' Clustered MAE ', mae_cluster)
+cat(' Null MAE ', mae_cluster_null)
+``` 
+
+## Plot clusters
+```{r}
+
+residplot <- ggplot(results) + geom_point(aes(x = fitted, y = residuals, colour = factor(cluster))) + ggtitle("Fitted vs Residuals") + geom_abline(intercept = 0, slope = 0)
+residplot
+
+```
+
+
+
