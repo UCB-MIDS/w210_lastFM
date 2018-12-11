@@ -11,7 +11,7 @@ We uset the last.fm 1K dataset and try to predict the user session length using 
 ## Repository details
 
  This repository has been divided into the following sections:
- - [Panel Data and Time Series Models](https://github.com/UCB-MIDS/w210_lastFM/tree/master/R%20Model%20Files)           : Analysis in R for Panel Data models(completed), Continuous Time model, Dynamic Linear models, Non-Linear Mixed Effects models
+ - [Panel Data and Time Series Models](https://github.com/UCB-MIDS/w210_lastFM/tree/master/R%20Model%20Files)           : Analysis in R for Panel Data models(completed), Continuous Time model, Dynamic Linear models, Non-Linear Mixed Effects models and the ETL in postgres
  - [classifier](https://github.com/UCB-MIDS/w210_lastFM/tree/master/Classification)                     : Analysis of performance of novel approach to session length prediction two-pass decile-classification techniques [WORK IN PROGRESS]
  - [sequence_to_sequence](https://github.com/UCB-MIDS/w210_lastFM/tree/master/sequence_to_sequence) : This section contains analysis done using various sequence to sequence deep learning techniques.
 
