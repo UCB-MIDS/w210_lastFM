@@ -1,7 +1,7 @@
 ---
-title: "Panel Data - Regression trees with Random Effects for Panel Data"
+title: "Panel Data - Random Effects with Expectation Maximization trees for Panel Data"
 author: "Jayashree Raman"
-date: "9/18/2018"
+date: "12/11/2018"
 output:
   pdf_document: default
   html_document: default
