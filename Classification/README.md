@@ -1,7 +1,7 @@
 ## User Session Length prediction in streaming media
 
 
-We uset the last.fm 1K dataset and try to predict the user session length using ML, Deep Learning and Panel data techniques and compare them with the state of the art models published in the following papers:
+We used the last.fm 1K dataset and try to predict the user session length using ML, Deep Learning and Panel data techniques and compare them with the state of the art models published in the following papers:
 
 
 
